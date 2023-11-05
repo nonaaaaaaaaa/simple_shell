@@ -31,3 +31,62 @@
 #define HIST_MAX	4096
 
 extern char **environ;
+
+
+/**
+ * struct liststr - single linked list
+ * @num: field number
+ * @str: string
+ * @next: point to next node
+ */
+
+typedef struct liststr
+{
+	int num;
+	char *str;
+	struct listrstr *next;
+} list_t;
+
+/**
+ * struct passinfo - contain pseudo arguments
+ * @arg: string argument
+ * @argv:array of string
+ * @path:string path for current command
+ * @argc: argument count
+ * @line_count: error count
+ * @err_num: the error code for exit
+ * @linecount_flag: if on count this line of input
+ * @fname: the filename program
+ * @env: linked list local copy of environ
+ * @history: the history node
+ * @alias: the alias node
+ * @environ:custom modifiefd copy
+ * @env_changed: on if environ was changed
+ * @status: the return status
+ * @cmd_buf: address of pointer
+ * @cmd_buf_type: cmd_type || , && , ;
+ * @readfd: to rad line input
+ * @histcount: line num count history
+ */
+
+typedef struct passinfo
+{
+	char *arg;
+	char **argv;
+	char *path;
+	int argc;
+	unsigned int line_count;
+	int err_num;
+	int linecount_flag;
+	char *fname;
+	list_t *env;
+	list_t *history;
+	list_t *alias;
+	char **environ;
+	int env_changed;
+	int status;
+	char **cmd_buf;
+	int cmd_buf_type;
+	int readfd;
+	int histcount;
+} info_t;
