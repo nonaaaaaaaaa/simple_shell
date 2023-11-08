@@ -67,12 +67,30 @@ char **split_line(char *line, int *argc, char separator)
 }
 
 
-void execute_command(char **argv, char *envp[])
+void execute_command(char **argv, char *envp[],Alias *aliasTable, int *aliasCount,int num_args)
 {
     pid_t pid;
     int status, found;
     char *cmdpath;
-
+    
+    if(strcmp(argv[0], "alias") == 0) {
+                if(num_args == 1) {
+                    printAlias(aliasTable,aliasCount);
+                    return;
+                } else if(num_args == 2) {
+                    char* value = getAlias(argv[1],aliasTable,aliasCount);
+                    if(value != NULL) {
+                        printf("%s='%s'\n", argv[1], value);
+                        return;
+                    }
+                } else if(num_args == 3) {
+                    addAlias(argv[1], argv[2],aliasTable,aliasCount);
+                    return;                
+                    
+                }
+            } 
+    
+    
     if (strcmp(argv[0], "cd") == 0)
     {
         cd_command(argv[1]);

@@ -60,4 +60,30 @@ void handle_unsetenv(char **argv)
         perror("unsetenv");
     }
 }
+char* replace_str(char* str, char* old_sub, char* new_sub) {
+    char* result;
+    int i, count = 0;
+    int new_sub_len = strlen(new_sub);
+    int old_sub_len = strlen(old_sub);
 
+    for (i = 0; str[i] != '\0'; i++) {
+        if (strstr(&str[i], old_sub) == &str[i]) {
+            count++;
+            i += old_sub_len - 1;
+        }
+    }
+
+    result = (char*)malloc(i + count * (new_sub_len - old_sub_len) + 1);
+    i = 0;
+    while (*str) {
+        if (strstr(str, old_sub) == str) {
+            strcpy(&result[i], new_sub);
+            i += new_sub_len;
+            str += old_sub_len;
+        } else {
+            result[i++] = *str++;
+        }
+    }
+    result[i] = '\0';
+    return result;
+}
