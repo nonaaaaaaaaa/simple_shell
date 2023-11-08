@@ -72,7 +72,7 @@ void execute_command(char **argv, char *envp[],Alias *aliasTable, int *aliasCoun
     pid_t pid;
     int status, found;
     char *cmdpath;
-    
+    FILE* file;
     if(strcmp(argv[0], "alias") == 0) {
                 if(num_args == 1) {
                     printAlias(aliasTable,aliasCount);
@@ -108,7 +108,18 @@ void execute_command(char **argv, char *envp[],Alias *aliasTable, int *aliasCoun
                 fprintf(stderr, "exit: Illegal number: %s\n", argv[1]);
                 return;
             }
+	    }
+        file = fopen("exit_status.txt", "w");
+        if (file != NULL) {
+            fprintf(file, "%d", status);
+            fflush(file);
+            fclose(file);
+        } else {
+            fclose(file);
+            
         }
+         
+        
         exit(status);
     }
 

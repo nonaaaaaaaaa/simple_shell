@@ -31,4 +31,5 @@ void addAlias(char* name, char* value,Alias *aliasTable,int *aliasCount);
 char* getAlias(char* name,Alias *aliasTable,int *aliasCount);
 void printAlias(Alias *aliasTable,int *aliasCount);
 char* replace_str(char* str, char* old_sub, char* new_sub);
+char* readFileContent(char *fileName);
 #endif
