@@ -4,15 +4,15 @@ char *my_getline(int fd)
 {
 	static char buffer[BUFFER_SIZE];
 	static char *ptr = buffer;
-	static int bytes_left = 0;
+	static int bytes_left;
 	char *line, *newline;
 	int line_len;
-	
+
 	if (bytes_left == 0)
 	{
 		bytes_left = read(fd, buffer, BUFFER_SIZE);
 		if (bytes_left == -1)
-			return (NULL); 
+			return (NULL);
 		else if (bytes_left == 0)
 			return (NULL);
 		ptr = buffer;
@@ -23,7 +23,7 @@ char *my_getline(int fd)
 	line_len = newline - ptr + 1;
 	line = malloc(line_len + 1);
 	if (line == NULL)
-		return (NULL); 
+		return (NULL);
 	memcpy(line, ptr, line_len);
 	line[line_len] = '\0';
 	ptr += line_len;
@@ -37,12 +37,13 @@ char **split_line(char *line, int *argc, char separator)
 	char *start = line;
 	char *end;
 	int i = 0;
-	
+
 	while (1)
 	{
-		while (*start == separator) start++;  
-		if (*start == '\0') 
-			break;  
+		while (*start == separator)
+			start++;
+		if (*start == '\0')
+		break;
 		end = start;
 		while (*end != separator && *end != '\0')
 			end++;
@@ -58,31 +59,34 @@ char **split_line(char *line, int *argc, char separator)
 }
 
 
-void execute_command(char **argv, char *envp[],Alias *aliasTable, int *aliasCount,int num_args)
+void execute_command(char **argv, char *envp[], Alias *aliasTable,
+		int *aliasCount, int num_args)
 {
 	pid_t pid;
 	int status, found;
 	char *cmdpath;
 	FILE *file;
-	if(strcmp(argv[0], "alias") == 0)
+
+	if (strcmp(argv[0], "alias") == 0)
 	{
-		if(num_args == 1)
+		if (num_args == 1)
 		{
-			printAlias(aliasTable,aliasCount);
+			printAlias(aliasTable, aliasCount);
 			return;
 		}
-		else if(num_args == 2)
+		else if (num_args == 2)
 		{
-			char *value = getAlias(argv[1],aliasTable,aliasCount);
-			if(value != NULL)
+			char *value = getAlias(argv[1], aliasTable, aliasCount);
+
+			if (value != NULL)
 			{
 				printf("%s='%s'\n", argv[1], value);
 				return;
 			}
 		}
-		else if(num_args == 3)
+		else if (num_args == 3)
 		{
-			addAlias(argv[1], argv[2],aliasTable,aliasCount);
+			addAlias(argv[1], argv[2], aliasTable, aliasCount);
 			return;
 		}
 	}
@@ -94,7 +98,7 @@ void execute_command(char **argv, char *envp[],Alias *aliasTable, int *aliasCoun
 	if (strcmp(argv[0], "exit") == 0)
 	{
 		int status = 0;
-	
+
 		if (argv[1] != NULL)
 		{
 			status = atoi(argv[1]);
@@ -131,11 +135,12 @@ void execute_command(char **argv, char *envp[],Alias *aliasTable, int *aliasCoun
 	if (strcmp(argv[0], "env") == 0)
 	{
 		char **env;
-	
+
 		for (env = envp; *env != 0; env++)
 		{
 			char *thisEnv = *env;
-			printf("%s\n", thisEnv);    
+
+			printf("%s\n", thisEnv);
 		}
 		return;
 	}
@@ -146,7 +151,7 @@ void execute_command(char **argv, char *envp[],Alias *aliasTable, int *aliasCoun
 		char *path = strdup(getenv("PATH"));
 		char *p = strtok(path, ":");
 		char tmp[512];
-		
+
 		while (p != NULL)
 		{
 			snprintf(tmp, sizeof(tmp), "%s/%s", p, argv[0]);

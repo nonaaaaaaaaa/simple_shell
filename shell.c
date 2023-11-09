@@ -20,11 +20,11 @@ int main(int argc, char *envp[])
 	char *content;
 	char *new_line;
 	(void)argc;
-	
+
 	while (1)
 	{
-		int i,j;
-		
+		int i, j;
+
 		printf("$ ");
 		fflush(stdout);
 		line = my_getline(STDIN_FILENO);
@@ -35,7 +35,7 @@ int main(int argc, char *envp[])
 		}
 		line[strlen(line) - 1] = '\0';
 		comment_start = strchr(line, '#');
-		if(comment_start != NULL)
+		if (comment_start != NULL)
 		{
 			*comment_start = '\0';
 		}
@@ -44,7 +44,7 @@ int main(int argc, char *envp[])
 		free(line);
 		line = new_line;
 		content = readFileContent("exit_status.txt");
-		if(content != NULL)
+		if (content != NULL)
 		{
 			new_line = replace_str(line, "$?", content);
 		}
@@ -56,7 +56,7 @@ int main(int argc, char *envp[])
 		free(line);
 		line = new_line;
 		path = getenv("PATH");
-		if(path != NULL)
+		if (path != NULL)
 		{
 			new_line = replace_str(line, "$PATH", path);
 			free(line);
@@ -67,10 +67,10 @@ int main(int argc, char *envp[])
 		{
 			char **args;
 			int num_args;
-            
+
 			args = split_line(commands[i], &num_args, ' ');
-			execute_command(args, envp,aliasTable,&aliasCount,num_args);
-			for (j=0; j < num_args; j++)
+			execute_command(args, envp, aliasTable, &aliasCount, num_args);
+			for (j = 0; j < num_args; j++)
 			{
 				free(args[j]);
 			}
