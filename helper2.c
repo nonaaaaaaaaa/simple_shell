@@ -62,131 +62,33 @@ char **split_line(char *line, int *argc, char separator)
 void execute_command(char **argv, char *envp[], Alias *aliasTable,
 		int *aliasCount, int num_args)
 {
-	pid_t pid;
-	int status, found;
-	char *cmdpath;
-	FILE *file;
+	char *cmdpath = argv[0];
 
-	if (strcmp(argv[0], "alias") == 0)
-	{
-		if (num_args == 1)
-		{
-			printAlias(aliasTable, aliasCount);
-			return;
-		}
-		else if (num_args == 2)
-		{
-			char *value = getAlias(argv[1], aliasTable, aliasCount);
-
-			if (value != NULL)
-			{
-				printf("%s='%s'\n", argv[1], value);
-				return;
-			}
-		}
-		else if (num_args == 3)
-		{
-			addAlias(argv[1], argv[2], aliasTable, aliasCount);
-			return;
-		}
+	if (strcmp(argv[0], "alias") == 0) {
+		handle_alias(argv, num_args, aliasTable, aliasCount);
+		return;
 	}
-	if (strcmp(argv[0], "cd") == 0)
-	{
+	if (strcmp(argv[0], "cd") == 0) {
 		cd_command(argv[1]);
 		return;
 	}
-	if (strcmp(argv[0], "exit") == 0)
-	{
-		int status = 0;
-
-		if (argv[1] != NULL)
-		{
-			status = atoi(argv[1]);
-			if (status < 0)
-			{
-				fprintf(stderr, "exit: Illegal number: %s\n", argv[1]);
-				return;
-			}
-		}
-		file = fopen("exit_status.txt", "w");
-		if (file != NULL)
-		{
-			fprintf(file, "%d", status);
-			fflush(file);
-			fclose(file);
-		}
-		else
-		{
-			fclose(file);
-		}
-		exit(status);
+	if (strcmp(argv[0], "exit") == 0) {
+		handle_exit(argv);
+		return;
 	}
-
-	if (strcmp(argv[0], "setenv") == 0)
-	{
+	if (strcmp(argv[0], "setenv") == 0) {
 		handle_setenv(argv);
 		return;
 	}
-	if (strcmp(argv[0], "unsetenv") == 0)
-	{
+	if (strcmp(argv[0], "unsetenv") == 0) {
 		handle_unsetenv(argv);
 		return;
 	}
-	if (strcmp(argv[0], "env") == 0)
-	{
-		char **env;
-
-		for (env = envp; *env != 0; env++)
-		{
-			char *thisEnv = *env;
-
-			printf("%s\n", thisEnv);
-		}
+	if (strcmp(argv[0], "env") == 0) {
+		handle_env(envp);
 		return;
 	}
-	cmdpath = argv[0];
-	found = (access(cmdpath, F_OK) == 0);
-	if (!found && strchr(argv[0], '/') == NULL)
-	{
-		char *path = strdup(getenv("PATH"));
-		char *p = strtok(path, ":");
-		char tmp[512];
-
-		while (p != NULL)
-		{
-			snprintf(tmp, sizeof(tmp), "%s/%s", p, argv[0]);
-			if (access(tmp, F_OK) == 0)
-			{
-				cmdpath = tmp;
-				found = 1;
-				break;
-			}
-			p = strtok(NULL, ":");
-		}
-		free(path);
-	}
-	if (!found)
-	{
-		fprintf(stderr, "%s: command not found\n", argv[0]);
-		return;
-	}
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("Error:");
-		return;
-	}
-	if (pid == 0)
-	{
-		if (execv(cmdpath, argv) == -1)
-		{
-			perror("Error:");
-		}
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		wait(&status);
-	}
+	find_command_path(&cmdpath, argv);
+	handle_command(argv, cmdpath);
 }
 
