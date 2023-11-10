@@ -1,5 +1,13 @@
 #include "shell.h"
 
+/**
+ * handle_alias - handle alias
+ * @argv: argument
+ * @num_args: num of args
+ * @aliasTable: array of alias
+ * @aliasCount: num of alias
+ * Return:void
+ */
 void handle_alias(char **argv, int num_args,
 		Alias *aliasTable, int *aliasCount)
 {
@@ -22,6 +30,11 @@ void handle_alias(char **argv, int num_args,
 	}
 }
 
+/**
+ * handle_exit - handle exit
+ * @argv: arguments
+ * Return:void
+ */
 void handle_exit(char **argv)
 {
 	int status = 0;
@@ -50,6 +63,11 @@ void handle_exit(char **argv)
 	exit(status);
 }
 
+/**
+ * handle_env - handle env
+ * @envp:environment
+ * Return:void
+ */
 void handle_env(char *envp[])
 {
 	char **env;
@@ -62,6 +80,12 @@ void handle_env(char *envp[])
 	}
 }
 
+/**
+ * handle_command - handle commands
+ * @argv: arguments
+ * @cmdpath: path
+ * Return:void
+ */
 void handle_command(char **argv, char *cmdpath)
 {
 	pid_t pid;
@@ -87,6 +111,12 @@ void handle_command(char **argv, char *cmdpath)
 	}
 }
 
+/**
+ * find_command_path - find path
+ * @cmdpath: path of cmd
+ * @argv: aguments
+ * Return:void
+ */
 void find_command_path(char **cmdpath, char **argv)
 {
 	int found = (access(*cmdpath, F_OK) == 0);
