@@ -53,7 +53,7 @@ void handle_exit(char **argv)
 void handle_env(char *envp[])
 {
 	char **env;
-	
+
 	for (env = envp; *env != 0; env++)
 	{
 		char *thisEnv = *env;
@@ -90,26 +90,28 @@ void handle_command(char **argv, char *cmdpath)
 void find_command_path(char **cmdpath, char **argv)
 {
 	int found = (access(*cmdpath, F_OK) == 0);
-    
+
 	if (!found && strchr(argv[0], '/') == NULL)
 	{
 		char *path = strdup(getenv("PATH"));
 		char *p = strtok(path, ":");
 		char tmp[512];
 
-        while (p != NULL) {
-            snprintf(tmp, sizeof(tmp), "%s/%s", p, argv[0]);
-            if (access(tmp, F_OK) == 0) {
-                *cmdpath = tmp;
-                found = 1;
-                break;
-            }
-            p = strtok(NULL, ":");
-        }
-        free(path);
-    }
-    if (!found) {
-        fprintf(stderr, "%s: command not found\n", argv[0]);
-    }
+		while (p != NULL)
+		{
+			snprintf(tmp, sizeof(tmp), "%s/%s", p, argv[0]);
+			if (access(tmp, F_OK) == 0)
+			{
+				*cmdpath = tmp;
+				found = 1;
+				break;
+			}
+			p = strtok(NULL, ":");
+		}
+		free(path);
+	}
+	if (!found)
+	{
+		fprintf(stderr, "%s: command not found\n", argv[0]);
+	}
 }
-
