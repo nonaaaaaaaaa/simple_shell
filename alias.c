@@ -51,7 +51,7 @@ char *getAlias(char *name, Alias *aliasTable, int *aliasCount)
 /**
  * printAlias - print the value of all alias
  * @aliasTable: array of alias
- * aliasCount:the count of alias
+ * @aliasCount:the count of alias
  * Return: void
  */
 

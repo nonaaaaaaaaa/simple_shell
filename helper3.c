@@ -37,23 +37,37 @@ void replace_pid(char **line)
  */
 void replace_exit_status(char **line, int lastExitStatus)
 {
-	char *content = readFileContent("exit_status.txt");
+	char *envValue = getenv("LAST_EXIT_STATUS");
 	char *new_line;
+	char exit_status[10];
+	char *content;
 
+	if (envValue == NULL)
+	{
+		new_line = replace_str(*line, "$?", exit_status);
+		free(*line);
+		*line = new_line;
+		return;
+	}
+	content = malloc(strlen(envValue) + 1);
+	if (content == NULL)
+	{
+		printf("Cannot allocate memory\n");
+	}
+	strcpy(content, envValue);
 	if (content != NULL)
 	{
-	new_line = replace_str(*line, "$?", content);
+		new_line = replace_str(*line, "$?", content);
 	}
 	else
 	{
-	char exit_status[10];
-
-	sprintf(exit_status, "%d", lastExitStatus);
-	new_line = replace_str(*line, "$?", exit_status);
+		sprintf(exit_status, "%d", lastExitStatus);
+		new_line = replace_str(*line, "$?", exit_status);
 	}
 	free(*line);
 	*line = new_line;
 }
+
 /**
  * replace_path - function to replace path
  * @line: pointer to char

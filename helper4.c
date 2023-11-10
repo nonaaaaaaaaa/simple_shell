@@ -38,28 +38,19 @@ void handle_alias(char **argv, int num_args,
 void handle_exit(char **argv)
 {
 	int status = 0;
-	FILE *file;
+	char status_str[20];
 
 	if (argv[1] != NULL)
 	{
 		status = atoi(argv[1]);
 		if (status < 0)
 		{
-		fprintf(stderr, "exit: Illegal number: %s\n", argv[1]);
-		return;
+			fprintf(stderr, "exit: Illegal number: %s\n", argv[1]);
+			return;
 		}
 	}
-	file = fopen("exit_status.txt", "w");
-	if (file != NULL)
-	{
-		fprintf(file, "%d", status);
-		fflush(file);
-		fclose(file);
-	}
-	else
-	{
-		fclose(file);
-	}
+	sprintf(status_str, "%d", status);
+	setenv("LAST_EXIT_STATUS", status_str, 1);
 	exit(status);
 }
 
