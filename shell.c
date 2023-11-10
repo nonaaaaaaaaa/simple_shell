@@ -3,6 +3,7 @@
 /**
  * main - entry
  * @argc:the argument
+ * @argv:arg
  * @envp:the environment ar
  * Return:0
  */
