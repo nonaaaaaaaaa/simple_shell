@@ -10,6 +10,16 @@
  */
 void addAlias(char *name, char *value, Alias *aliasTable, int *aliasCount)
 {
+	int i;
+
+	for (i = 0; i < *aliasCount; i++)
+	{
+		if (strcmp(aliasTable[i].name, name) == 0)
+		{
+			strcpy(aliasTable[i].value, value);
+			return;
+		}
+	}
 	strcpy(aliasTable[*aliasCount].name, name);
 	strcpy(aliasTable[*aliasCount].value, value);
 	(*aliasCount)++;
