@@ -1,23 +1,24 @@
 #include "shell.h"
 
 void handle_alias(char **argv, int num_args,
-		Alias *aliasTable, int *aliasCount) {
-    if (num_args == 1)
-    {
-	printAlias(aliasTable, aliasCount);
-    }
-    else if (num_args == 2)
+		Alias *aliasTable, int *aliasCount)
+{
+	if (num_args == 1)
 	{
-	char *value = getAlias(argv[1], aliasTable, aliasCount);
-
-	if (value != NULL)
-	{
-	printf("%s='%s'\n", argv[1], value);
+		printAlias(aliasTable, aliasCount);
 	}
+	else if (num_args == 2)
+	{
+		char *value = getAlias(argv[1], aliasTable, aliasCount);
+
+		if (value != NULL)
+		{
+			printf("%s='%s'\n", argv[1], value);
+		}
 	}
 	else if (num_args == 3)
 	{
-	addAlias(argv[1], argv[2], aliasTable, aliasCount);
+		addAlias(argv[1], argv[2], aliasTable, aliasCount);
 	}
 }
 
@@ -28,23 +29,23 @@ void handle_exit(char **argv)
 
 	if (argv[1] != NULL)
 	{
-	status = atoi(argv[1]);
-	if (status < 0)
-	{
-	fprintf(stderr, "exit: Illegal number: %s\n", argv[1]);
-	return;
-	}
+		status = atoi(argv[1]);
+		if (status < 0)
+		{
+		fprintf(stderr, "exit: Illegal number: %s\n", argv[1]);
+		return;
+		}
 	}
 	file = fopen("exit_status.txt", "w");
 	if (file != NULL)
 	{
-	fprintf(file, "%d", status);
-	fflush(file);
-	fclose(file);
+		fprintf(file, "%d", status);
+		fflush(file);
+		fclose(file);
 	}
 	else
 	{
-	fclose(file);
+		fclose(file);
 	}
 	exit(status);
 }
@@ -55,9 +56,9 @@ void handle_env(char *envp[])
 	
 	for (env = envp; *env != 0; env++)
 	{
-	char *thisEnv = *env;
+		char *thisEnv = *env;
 
-	printf("%s\n", thisEnv);
+		printf("%s\n", thisEnv);
 	}
 }
 
@@ -69,29 +70,32 @@ void handle_command(char **argv, char *cmdpath)
 	pid = fork();
 	if (pid == -1)
 	{
-	perror("Error:");
-	return;
+		perror("Error:");
+		return;
 	}
 	if (pid == 0)
 	{
-	if (execv(cmdpath, argv) == -1)
-	{
-	perror("Error:");
-	}
-	exit(EXIT_FAILURE);
+		if (execv(cmdpath, argv) == -1)
+		{
+		perror("Error:");
+		}
+		exit(EXIT_FAILURE);
 	}
 	else
 	{
-	wait(&status);
+		wait(&status);
 	}
 }
 
-void find_command_path(char **cmdpath, char **argv) {
-    int found = (access(*cmdpath, F_OK) == 0);
-    if (!found && strchr(argv[0], '/') == NULL) {
-        char *path = strdup(getenv("PATH"));
-        char *p = strtok(path, ":");
-        char tmp[512];
+void find_command_path(char **cmdpath, char **argv)
+{
+	int found = (access(*cmdpath, F_OK) == 0);
+    
+	if (!found && strchr(argv[0], '/') == NULL)
+	{
+		char *path = strdup(getenv("PATH"));
+		char *p = strtok(path, ":");
+		char tmp[512];
 
         while (p != NULL) {
             snprintf(tmp, sizeof(tmp), "%s/%s", p, argv[0]);
