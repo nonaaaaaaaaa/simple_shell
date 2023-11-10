@@ -34,12 +34,14 @@ char *getAlias(char *name, Alias *aliasTable, int *aliasCount);
 void printAlias(Alias *aliasTable, int *aliasCount);
 char *replace_str(char *str, char *old_sub, char *new_sub);
 char *readFileContent(char *fileName);
-void process_comments(char* line);
-void replace_pid(char** line);
-void replace_exit_status(char** line, int lastExitStatus);
-void replace_path(char** line);
-void process_commands(char* line, char *envp[], Alias aliasTable[], int *aliasCount);
-void handle_alias(char **argv, int num_args, Alias *aliasTable, int *aliasCount);
+void process_comments(char *line);
+void replace_pid(char **line);
+void replace_exit_status(char **line, int lastExitStatus);
+void replace_path(char **line);
+void process_commands(char *line, char *envp[],
+		Alias aliasTable[], int *aliasCount);
+void handle_alias(char **argv, int num_args,
+		Alias *aliasTable, int *aliasCount);
 void handle_exit(char **argv);
 void handle_env(char *envp[]);
 void handle_command(char **argv, char *cmdpath);
