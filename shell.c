@@ -6,13 +6,14 @@
  * @envp:the environment ar
  * Return:0
  */
-int main(int argc, char *envp[])
+int main(int argc, char *argv[], char *envp[])
 {
 	char *line;
 	Alias aliasTable[MAX_ALIAS_NUM];
 	int aliasCount = 0;
 	int lastExitStatus = 0;
 	(void)argc;
+	(void)argv;
 
 	while (1)
 	{
