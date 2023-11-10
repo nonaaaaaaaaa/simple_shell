@@ -1,6 +1,11 @@
 #include "shell.h"
 
-
+/**
+ * main - entry
+ * @argc:the argument
+ * @envp:the environment ar
+ * Return:0
+ */
 int main(int argc, char *envp[])
 {
 	char *line;
