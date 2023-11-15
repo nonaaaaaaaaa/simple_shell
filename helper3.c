@@ -1,105 +1,120 @@
 #include "shell.h"
 
 /**
- * _puts - Prints a string to the standard output stream
- * @str: The string to print
+ *_strcmp - compare two strings
+ *@first: first string to be compared
+ *@second: second string to be compared
  *
- * Return: Void
+ * Return: difference of the two strings
  */
-void _puts(char *str)
-{
-	size_t len;
-	ssize_t num_written;
 
-	len = _strlen(str);
-	num_written = write(STDOUT_FILENO, str, len);
-	if (num_written == -1)
+int _strcmp(char *first, char *second)
+{
+	int i = 0;
+
+	while (first[i] != '\0')
 	{
-		perror("write");
+		if (first[i] != second[i])
+			break;
+		i++;
 	}
+	return (first[i] - second[i]);
 }
 
 /**
- * _puterror - Prints an error message to the standard error stream
- * @err: The error message to print
+ *_strcat - concatenates two strings
+ *@destination: string to be concatenated to
+ *@source:  string to concatenate
  *
- * Return: Void
+ * Return: address of the new string
  */
-void _puterror(char *err)
-{
-	size_t len;
-	ssize_t num_written;
 
-	len = _strlen(err);
-	num_written = write(STDERR_FILENO, err, len);
-	if (num_written == -1)
-	{
-		perror("write");
-	}
+char *_strcat(char *destination, char *source)
+{
+	char *new_string =  NULL;
+	int len_dest = _strlen(destination);
+	int len_source = _strlen(source);
+
+	new_string = malloc(sizeof(*new_string) * (len_dest + len_source + 1));
+	_strcpy(destination, new_string);
+	_strcpy(source, new_string + len_dest);
+	new_string[len_dest + len_source] = '\0';
+	return (new_string);
 }
 
 /**
- * find_in_path - Looks for a command in each directory specified in the PATH
- *                environment variable
- * @command: pointer to `command` string to look for.
+ *_strspn - gets the length of a prefix substring
+ *@str1: string to be searched
+ *@str2: string to be used
  *
- * Return: pointer to string containing the full path (success) if it is found,
- *         or NULL if it is not found (failure).
-*/
-char *find_in_path(char *command)
-{
-	struct stat st;
-	int stat_ret, i;
-	char buf[PATH_MAX_LENGTH], *path, *ret, **dir;
+ *Return: number of bytes in the initial segment of 5 which are part of accept
+ */
 
-	path = get_path();
-	if (!path)
+int _strspn(char *str1, char *str2)
+{
+	int i = 0;
+	int match = 0;
+
+	while (str1[i] != '\0')
+	{
+		if (_strchr(str2, str1[i]) == NULL)
+			break;
+		match++;
+		i++;
+	}
+	return (match);
+}
+
+/**
+ *_strcspn - computes segment of str1 which consists of characters not in str2
+ *@str1: string to be searched
+ *@str2: string to be used
+ *
+ *Return: index at which a char in str1 exists in str2
+ */
+
+
+int _strcspn(char *str1, char *str2)
+{
+	int len = 0, i;
+
+	for (i = 0; str1[i] != '\0'; i++)
+	{
+		if (_strchr(str2, str1[i]) != NULL)
+			break;
+		len++;
+	}
+	return (len);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ *_strchr - locates a char in a string
+ *@s: string to be searched
+ *@c: char to be checked
+ *
+ *Return: pointer to the first occurence of c in s
+ */
+
+char *_strchr(char *s, char c)
+{
+	int i = 0;
+
+	for (; s[i] != c && s[i] != '\0'; i++)
+		;
+	if (s[i] == c)
+		return (s + i);
+	else
 		return (NULL);
-	dir = tokenize(path, PATH_SEPARATOR);
-	if (!dir)
-		return (NULL);
-	for (i = 0; dir[i]; i++)
-	{
-		_memset(buf, 0, PATH_MAX_LENGTH);
-		_strcpy(buf, dir[i]);
-		_strcat(buf, "/");
-		_strcat(buf, command);
-		stat_ret = stat(buf, &st);
-		if (stat_ret == 0 && S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR))
-		{
-			free_tokens(dir);
-			ret = malloc(sizeof(char) * (strlen(buf) + 1));
-			if (!ret)
-				return (NULL);
-			strcpy(ret, buf);
-			return (ret);
-		}
-	}
-	if (stat_ret == -1)
-		free_tokens(dir);
-	return (NULL);
 }
-
-/**
- * _getenv - Get the value of an environment variable
- * @name: Name of the environment variable
- *
- * Return: Value of the environment variable, or NULL if it doesn't exist
- */
-char *_getenv(const char *name)
-{
-	char **env;
-	size_t name_len = _strlen(name);
-
-	for (env = environ; *env != NULL; env++)
-	{
-		if (_strncmp(*env, name, name_len) == 0 && (*env)[name_len] == '=')
-		{
-			return (&(*env)[name_len + 1]);
-		}
-	}
-
-	return (NULL);
-}
-
-

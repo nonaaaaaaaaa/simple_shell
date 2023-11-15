@@ -1,137 +1,103 @@
 #include "shell.h"
 
 /**
- * shell_exit - Exit the shell.
- * @args: Arguments.
+ * tokenizer - tokenizes input and stores it into an array
+ *@input_string: input to be parsed
+ *@delim: delimiter to be used, needs to be one character string
  *
- * Return: Nothing.
+ *Return: array of tokens
  */
-void shell_exit(char **args)
-{
-	int status = 0;
 
-	if (args[1] != NULL)
+char **tokenizer(char *input_string, char *delim)
+{
+	int num_delim = 0;
+	char **av = NULL;
+	char *token = NULL;
+	char *save_ptr = NULL;
+
+	token = _strtok_r(input_string, delim, &save_ptr);
+
+	while (token != NULL)
 	{
-		status = _atoi(args[1]);
+		av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+		av[num_delim] = token;
+		token = _strtok_r(NULL, delim, &save_ptr);
+		num_delim++;
 	}
-	free_tokens(args);
-	free_last_input();
-	exit(status);
+
+	av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+	av[num_delim] = NULL;
+
+	return (av);
 }
 
 /**
- * shell_help - displays help information for built-in commands
+ *print - prints a string to stdout
+ *@string: string to be printed
+ *@stream: stream to print out to
+ *
+ *Return: void, return nothing
  */
-void shell_help(void)
+void print(char *string, int stream)
 {
-	_puts("\nShell Version 1.0.0\n\n");
-	_puts("Usage: ./hsh\n\n");
-	_puts("Shell built-in commands:\n\n");
-	_puts("help\t\tDisplay this help information\n\n");
-	_puts("cd [dir]\tChange the current working directory\n\n");
-	_puts("env\t\tDisplay the environment variables\n\n");
-	_puts("setenv\t\tSet an environment variable\n\n");
-	_puts("unsetenv\tUnset an environment variable\n\n");
-	_puts("exit\t\tExit the shell\n\n");
+	int i = 0;
+
+	for (; string[i] != '\0'; i++)
+		write(stream, &string[i], 1);
 }
 
 /**
- * shell_setenv - Set the value of an environment variable
- * @args: Arguments (name and value of the environment variable)
+ *remove_newline - removes new line from a string
+ *@str: string to be used
  *
- * Return: Nothing
+ *
+ *Return: void
  */
-int shell_setenv(char **args)
+
+void remove_newline(char *str)
 {
-	char *name, *value;
+	int i = 0;
 
-	if (args[1] == NULL || args[2] == NULL)
+	while (str[i] != '\0')
 	{
-		_puterror("Usage: setenv VARIABLE VALUE\n");
-		return (-1);
+		if (str[i] == '\n')
+			break;
+		i++;
 	}
-
-	name = args[1];
-	value = args[2];
-
-	if (setenv(name, value, 1) != 0)
-	{
-		_puterror("setenv");
-		return (-1);
-	}
-	return (0);
+	str[i] = '\0';
 }
 
 /**
- * shell_unsetenv - Unset an environment variable
- * @args: Arguments (name of the environment variable)
+ *_strcpy - copies a string to another buffer
+ *@source: source to copy from
+ *@dest: destination to copy to
  *
- * Return: Nothing
+ * Return: void
  */
-int shell_unsetenv(char **args)
+
+void _strcpy(char *source, char *dest)
 {
-	char *name;
+	int i = 0;
 
-	if (args[1] == NULL)
-	{
-		_puterror("Usage: unsetenv VARIABLE\n");
-		return (-1);
-	}
-
-	name = args[1];
-
-	if (unsetenv(name) != 0)
-	{
-		_puterror("unsetenv");
-	}
-	return (0);
+	for (; source[i] != '\0'; i++)
+		dest[i] = source[i];
+	dest[i] = '\0';
 }
 
 /**
- * execute - Execute a command with arguments.
- * @argv: An array of strings containing the command and its arguments.
+ *_strlen - counts string length
+ *@string: string to be counted
  *
- * Return: The exit status of the executed command.
+ * Return: length of the string
  */
-int execute(char **argv)
+
+int _strlen(char *string)
 {
-	pid_t id;
-	int status = 0;
-	char *cmd_path, *envp[2];
+	int len = 0;
 
-	if (argv == NULL || *argv == NULL)
-		return (status);
-	if (check_for_builtin(argv))
-		return (status);
-
-	id = fork();
-	if (id < 0)
-	{
-		_puterror("fork");
-		return (1);
-	}
-	if (id == -1)
-		perror(argv[0]), free_tokens(argv), free_last_input();
-	if (id == 0)
-	{
-		envp[0] = get_path();
-		envp[1] = NULL;
-		cmd_path = NULL;
-		if (argv[0][0] != '/')
-			cmd_path = find_in_path(argv[0]);
-		if (cmd_path == NULL)
-			cmd_path = argv[0];
-		if (execve(cmd_path, argv, envp) == -1)
-		{
-			perror(argv[0]), free_tokens(argv), free_last_input();
-			exit(EXIT_FAILURE);
-		}
-	}
-	else
-	{
-		do {
-			waitpid(id, &status, WUNTRACED);
-		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-	}
-	return (status);
+	if (string == NULL)
+		return (len);
+	for (; string[len] != '\0'; len++)
+		;
+	return (len);
 }

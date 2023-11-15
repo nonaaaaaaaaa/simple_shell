@@ -1,74 +1,41 @@
 #include "shell.h"
 
 /**
- * get_path - Returns the value of the PATH enviroment variable.
+ * non_interactive - handles non_interactive mode
  *
- * Return: Pointer to the value of $PATH.
+ * Return: void
  */
-char *get_path(void)
-{
-	return (_getenv("PATH"));
-}
 
-/**
- * tokenize - parsing user input into arguments
- *            by splits an array string into tokens using a delimiter.
- * @str: the string to be tokenized.
- * @delim: the delimiter used to split the string.
- *
- * Return: an array of pointers to the tokens,
- *         or NULL if an error occurs.
- */
-char **tokenize(char *str, const char *delim)
+void non_interactive(void)
 {
-	char *token = NULL;
-	char **ret = NULL;
-	int i = 0;
+	char **current_command = NULL;
+	int i, type_command = 0;
+	size_t n = 0;
 
-	token = strtok(str, delim);
-	while (token)
+	if (!(isatty(STDIN_FILENO)))
 	{
-		ret = realloc(ret, sizeof(char *) * (i + 1));
-		if (ret == NULL)
-			return (NULL);
-
-		ret[i] = malloc(_strlen(token) + 1);
-		if (!(ret[i]))
-			return (NULL);
-
-		_strcpy(ret[i], token);
-		token = strtok(NULL, delim);
-		i++;
+		while (getline(&line, &n, stdin) != -1)
+		{
+			remove_newline(line);
+			remove_comment(line);
+			commands = tokenizer(line, ";");
+			for (i = 0; commands[i] != NULL; i++)
+			{
+				current_command = tokenizer(commands[i], " ");
+				if (current_command[0] == NULL)
+				{
+					free(current_command);
+					break;
+				}
+				type_command = parse_command(current_command[0]);
+				initializer(current_command, type_command);
+				free(current_command);
+			}
+			free(commands);
+		}
+		free(line);
+		exit(status);
 	}
-	/*increase the size of the array*/
-	ret = realloc(ret, (i + 1) * sizeof(char *));
-	if (!ret)
-		return (NULL);
-
-	ret[i] = NULL;
-	return (ret);
 }
 
-/**
- * tokenize_input - splits a user input string into tokens with tokenize().
- * @input: the user input string to be tokenized
- *
- * Return: an array of pointers to the tokens, or NULL if an error occurs
- */
-char **tokenize_input(char *input)
-{
-	char **tokens = NULL;
-	char *tmp = NULL;
 
-	tmp = _strdup(input);
-	if (tmp == NULL)
-	{
-		_puts("Memory allocation error\n");
-		exit(EXIT_FAILURE);
-	}
-
-	tokens = tokenize(tmp, " \t\r\n\a");
-	free(tmp);
-
-	return (tokens);
-}

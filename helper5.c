@@ -1,51 +1,28 @@
 #include "shell.h"
 
-static char *last_input;
 /**
- * get_input - Read the line of input from user.
+ * initializer - starts executing everything
+ * @current_command: try to check current token
+ * @type_command: parse token
  *
- * Return: Pointer to a buffer conatining the user's input.
-*/
-char *get_input(void)
-{
-	char *input = NULL;
-	size_t input_size = 0;
-	ssize_t nread;
-
-	do {
-		/* print shell prompt */
-		prompt();
-
-		/* get a line of input from user */
-		nread = getline(&input, &input_size, stdin);
-
-		/* check for EOF or error */
-		if (nread == -1)
-		{
-			free(input);
-			_puts("\n");
-			return (NULL);
-		}
-
-		/* remove trailing newline character */
-		input[nread - 1] = '\0';
-
-	} while (input[0] == '\0' || isspace(input[0]));
-
-	/* update last_input to point to the new input */
-	last_input = input;
-	return (input);
-}
-
-/**
- * free_last_input - Frees the most recent input entered by the user.
- *
- * This function frees the memory allocated for the most recent input string
- * entered by the user. It should be called after the input string is no longer
- * needed.
+ * Return: void function
  */
-void free_last_input(void)
+
+void initializer(char **current_command, int type_command)
 {
-	free(last_input);
-	last_input = NULL;
+	pid_t PID;
+
+	if (type_command == EXTERNAL_COMMAND || type_command == PATH_COMMAND)
+	{
+		PID = fork();
+		if (PID == 0)
+			execute_command(current_command, type_command);
+		else
+		{
+			waitpid(PID, &status, 0);
+			status >>= 8;
+		}
+	}
+	else
+		execute_command(current_command, type_command);
 }
