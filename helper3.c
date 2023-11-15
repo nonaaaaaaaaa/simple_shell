@@ -1,110 +1,105 @@
 #include "shell.h"
+
 /**
- * process_comments - function to write comment
- * @line: number of line
- * Return: nothing
+ * _puts - Prints a string to the standard output stream
+ * @str: The string to print
+ *
+ * Return: Void
  */
-void process_comments(char *line)
+void _puts(char *str)
 {
-	char *comment_start = strchr(line, '#');
+	size_t len;
+	ssize_t num_written;
 
-	if (comment_start != NULL)
+	len = _strlen(str);
+	num_written = write(STDOUT_FILENO, str, len);
+	if (num_written == -1)
 	{
-	*comment_start = '\0';
+		perror("write");
 	}
-}
-/**
- * replace_pid - function to replace
- * @line: number of line
- * Return:nothing
- */
-void replace_pid(char **line)
-{
-	char pid[10];
-	char *new_line;
-
-	sprintf(pid, "%d", getpid());
-
-	new_line = replace_str(*line, "$$", pid);
-	free(*line);
-	*line = new_line;
-}
-/**
- * replace_exit_status - function to replace exit status
- * @line: ponter to line
- * @lastExitStatus: last line number
- * Return: nothing
- */
-void replace_exit_status(char **line, int lastExitStatus)
-{
-	char *envValue = getenv("LAST_EXIT_STATUS");
-	char *new_line;
-	char exit_status[10];
-	char *content;
-
-	if (envValue == NULL)
-	{
-		new_line = replace_str(*line, "$?", exit_status);
-		free(*line);
-		*line = new_line;
-		return;
-	}
-	content = malloc(strlen(envValue) + 1);
-	if (content == NULL)
-	{
-		printf("Cannot allocate memory\n");
-	}
-	strcpy(content, envValue);
-	if (content != NULL)
-	{
-		new_line = replace_str(*line, "$?", content);
-	}
-	else
-	{
-		sprintf(exit_status, "%d", lastExitStatus);
-		new_line = replace_str(*line, "$?", exit_status);
-	}
-	free(*line);
-	*line = new_line;
 }
 
 /**
- * replace_path - function to replace path
- * @line: pointer to char
- * Return: nothing
+ * _puterror - Prints an error message to the standard error stream
+ * @err: The error message to print
+ *
+ * Return: Void
  */
-void replace_path(char **line)
+void _puterror(char *err)
 {
-	char *path = getenv("PATH");
+	size_t len;
+	ssize_t num_written;
 
-	if (path != NULL)
+	len = _strlen(err);
+	num_written = write(STDERR_FILENO, err, len);
+	if (num_written == -1)
 	{
-	char *new_line = replace_str(*line, "$PATH", path);
-
-	free(*line);
-	*line = new_line;
+		perror("write");
 	}
 }
 
-void process_commands(char *line, char *envp[],
-		Alias aliasTable[], int *aliasCount)
+/**
+ * find_in_path - Looks for a command in each directory specified in the PATH
+ *                environment variable
+ * @command: pointer to `command` string to look for.
+ *
+ * Return: pointer to string containing the full path (success) if it is found,
+ *         or NULL if it is not found (failure).
+*/
+char *find_in_path(char *command)
 {
-	int num_commands, i, j;
-	char **commands = split_line(line, &num_commands, ';');
+	struct stat st;
+	int stat_ret, i;
+	char buf[PATH_MAX_LENGTH], *path, *ret, **dir;
 
-	for (i = 0; i < num_commands; i++)
+	path = get_path();
+	if (!path)
+		return (NULL);
+	dir = tokenize(path, PATH_SEPARATOR);
+	if (!dir)
+		return (NULL);
+	for (i = 0; dir[i]; i++)
 	{
-	int num_args;
-	char **args = split_line(commands[i], &num_args, ' ');
-
-	execute_command(args, envp, aliasTable, aliasCount, num_args);
-
-	for (j = 0; j < num_args; j++)
-	{
-	free(args[j]);
+		_memset(buf, 0, PATH_MAX_LENGTH);
+		_strcpy(buf, dir[i]);
+		_strcat(buf, "/");
+		_strcat(buf, command);
+		stat_ret = stat(buf, &st);
+		if (stat_ret == 0 && S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR))
+		{
+			free_tokens(dir);
+			ret = malloc(sizeof(char) * (strlen(buf) + 1));
+			if (!ret)
+				return (NULL);
+			strcpy(ret, buf);
+			return (ret);
+		}
 	}
-	free(args);
-	free(commands[i]);
-	}
-	free(commands);
+	if (stat_ret == -1)
+		free_tokens(dir);
+	return (NULL);
 }
+
+/**
+ * _getenv - Get the value of an environment variable
+ * @name: Name of the environment variable
+ *
+ * Return: Value of the environment variable, or NULL if it doesn't exist
+ */
+char *_getenv(const char *name)
+{
+	char **env;
+	size_t name_len = _strlen(name);
+
+	for (env = environ; *env != NULL; env++)
+	{
+		if (_strncmp(*env, name, name_len) == 0 && (*env)[name_len] == '=')
+		{
+			return (&(*env)[name_len + 1]);
+		}
+	}
+
+	return (NULL);
+}
+
+

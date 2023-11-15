@@ -1,143 +1,60 @@
 #include "shell.h"
 
 /**
- * handle_alias - handle alias
- * @argv: argument
- * @num_args: num of args
- * @aliasTable: array of alias
- * @aliasCount: num of alias
- * Return:void
+ * free_error - frees alloc'd pointers following system error
+ * @argv: pointer to a pointer to an array of pointers
+ * @arg: pointer to a pointer to an array of characters
+ *
+ * Return: void.
  */
-void handle_alias(char **argv, int num_args,
-		Alias *aliasTable, int *aliasCount)
+void free_error(char **argv, char *arg)
 {
-	if (num_args == 1)
-	{
-		printAlias(aliasTable, aliasCount);
-	}
-	else if (num_args == 2)
-	{
-		char *value = getAlias(argv[1], aliasTable, aliasCount);
+	int i;
 
-		if (value != NULL)
-		{
-			printf("%s='%s'\n", argv[1], value);
-		}
-	}
-	else if (num_args == 3)
-	{
-		addAlias(argv[1], argv[2], aliasTable, aliasCount);
-	}
+	for (i = 0; argv[i]; i++)
+		free(argv[i]);
+	free(argv);
+	free(arg);
+	exit(EXIT_FAILURE);
 }
 
 /**
- * handle_exit - handle exit
- * @argv: arguments
- * Return:void
+ * free_tokens - frees memory allocated dynamically by tokenize()
+ * @ptr: pointer to allocated memory
+ *
+ * Return: void.
  */
-void handle_exit(char **argv)
+void free_tokens(char **ptr)
 {
-	int status = 0;
-	char status_str[20];
+	int i;
 
-	if (argv[1] != NULL)
-	{
-		status = atoi(argv[1]);
-		if (status < 0)
-		{
-			fprintf(stderr, "exit: Illegal number: %s\n", argv[1]);
-			return;
-		}
-	}
-	sprintf(status_str, "%d", status);
-	setenv("LAST_EXIT_STATUS", status_str, 1);
-	exit(status);
+	for (i = 0; ptr[i]; i++)
+		free((ptr[i]));
+	free(ptr);
 }
 
-/**
- * handle_env - handle env
- * @envp:environment
- * Return:void
- */
-void handle_env(char *envp[])
-{
-	char **env;
-
-	for (env = envp; *env != 0; env++)
-	{
-		char *thisEnv = *env;
-
-		printf("%s\n", thisEnv);
-	}
-}
 
 /**
- * handle_command - handle commands
- * @argv: arguments
- * @cmdpath: path
- * Return:void
+ * free_path - Frees the global variable containing the PATH environment
+ *              variable value
+ *
+ * Return: Nothing
  */
-void handle_command(char **argv, char *cmdpath)
+void free_path(void)
 {
-	pid_t pid;
-	int status;
+	if (environ != NULL)
+	{
+		size_t i = 0;
 
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("Error:");
-		return;
-	}
-	if (pid == 0)
-	{
-		if (execv(cmdpath, argv) == -1)
+		while (environ[i] != NULL)
 		{
-		perror("Error:");
-		}
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		wait(&status);
-	}
-}
-
-/**
- * find_command_path - find path
- * @cmdpath: path of cmd
- * @argv: aguments
- * Return:0 or 1
- */
-int find_command_path(char **cmdpath, char **argv)
-{
-	int found = (access(*cmdpath, F_OK) == 0);
-
-	if (!found && strchr(argv[0], '/') == NULL)
-	{
-		char *path = strdup(getenv("PATH"));
-		char *p = strtok(path, ":");
-		char tmp[512];
-
-		while (p != NULL)
-		{
-			snprintf(tmp, sizeof(tmp), "%s/%s", p, argv[0]);
-			if (access(tmp, F_OK) == 0)
+			if (_strncmp(environ[i], "PATH=", 5) == 0)
 			{
-				*cmdpath = tmp;
-				found = 1;
+				free(environ[i]);
+				environ[i] = NULL;
 				break;
 			}
-			p = strtok(NULL, ":");
+			i++;
 		}
-		free(path);
-	}
-	if (!found)
-	{
-		fprintf(stderr, "%s: command not found\n", argv[0]);
-		return (0);
-	}
-	else
-	{
-		return (1);
 	}
 }

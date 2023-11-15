@@ -1,112 +1,137 @@
 #include "shell.h"
-/**
- * my_getline - function to get new line
- * @fd: int number
- * Return: Null
- */
-char *my_getline(int fd)
-{
-	static char buffer[BUFFER_SIZE];
-	static char *ptr = buffer;
-	static int bytes_left;
-	char *line, *newline;
-	int line_len;
 
-	if (bytes_left == 0)
-	{
-		bytes_left = read(fd, buffer, BUFFER_SIZE);
-		if (bytes_left == -1)
-			return (NULL);
-		else if (bytes_left == 0)
-			return (NULL);
-		ptr = buffer;
-	}
-	newline = memchr(ptr, '\n', bytes_left);
-	if (newline == NULL)
-		newline = ptr + bytes_left - 1;
-	line_len = newline - ptr + 1;
-	line = malloc(line_len + 1);
-	if (line == NULL)
-		return (NULL);
-	memcpy(line, ptr, line_len);
-	line[line_len] = '\0';
-	ptr += line_len;
-	bytes_left -= line_len;
-	return (line);
-}
 /**
- * split_line - function to split line
- * @line: pointer
- * @argc: pointer
- * @separator: character variable
- * Return: argv
+ * shell_exit - Exit the shell.
+ * @args: Arguments.
+ *
+ * Return: Nothing.
  */
-char **split_line(char *line, int *argc, char separator)
+void shell_exit(char **args)
 {
-	char **argv = malloc(MAXARGS * sizeof(char *));
-	char *start = line;
-	char *end;
-	int i = 0;
+	int status = 0;
 
-	while (1)
+	if (args[1] != NULL)
 	{
-		while (*start == separator)
-			start++;
-		if (*start == '\0')
-		break;
-		end = start;
-		while (*end != separator && *end != '\0')
-			end++;
-		argv[i] = malloc((end - start + 1) * sizeof(char));
-		strncpy(argv[i], start, end - start);
-		argv[i][end - start] = '\0';
-		i++;
-		start = end;
+		status = _atoi(args[1]);
 	}
-	argv[i] = NULL;
-	*argc = i;
-	return (argv);
+	free_tokens(args);
+	free_last_input();
+	exit(status);
 }
 
-
-void execute_command(char **argv, char *envp[], Alias *aliasTable,
-		int *aliasCount, int num_args)
+/**
+ * shell_help - displays help information for built-in commands
+ */
+void shell_help(void)
 {
-	char *cmdpath = argv[0];
+	_puts("\nShell Version 1.0.0\n\n");
+	_puts("Usage: ./hsh\n\n");
+	_puts("Shell built-in commands:\n\n");
+	_puts("help\t\tDisplay this help information\n\n");
+	_puts("cd [dir]\tChange the current working directory\n\n");
+	_puts("env\t\tDisplay the environment variables\n\n");
+	_puts("setenv\t\tSet an environment variable\n\n");
+	_puts("unsetenv\tUnset an environment variable\n\n");
+	_puts("exit\t\tExit the shell\n\n");
+}
 
-	if (strcmp(argv[0], "alias") == 0)
+/**
+ * shell_setenv - Set the value of an environment variable
+ * @args: Arguments (name and value of the environment variable)
+ *
+ * Return: Nothing
+ */
+int shell_setenv(char **args)
+{
+	char *name, *value;
+
+	if (args[1] == NULL || args[2] == NULL)
 	{
-		handle_alias(argv, num_args, aliasTable, aliasCount);
-		return;
-	}
-	if (strcmp(argv[0], "cd") == 0)
-	{
-		cd_command(argv[1]);
-		return;
-	}
-	if (strcmp(argv[0], "exit") == 0)
-	{
-		handle_exit(argv);
-		return;
-	}
-	if (strcmp(argv[0], "setenv") == 0)
-	{
-		handle_setenv(argv);
-		return;
-	}
-	if (strcmp(argv[0], "unsetenv") == 0)
-	{
-		handle_unsetenv(argv);
-		return;
-	}
-	if (strcmp(argv[0], "env") == 0)
-	{
-		handle_env(envp);
-		return;
-	}
-	if (find_command_path(&cmdpath, argv) == 1)
-	{
-		handle_command(argv, cmdpath);
+		_puterror("Usage: setenv VARIABLE VALUE\n");
+		return (-1);
 	}
 
+	name = args[1];
+	value = args[2];
+
+	if (setenv(name, value, 1) != 0)
+	{
+		_puterror("setenv");
+		return (-1);
+	}
+	return (0);
+}
+
+/**
+ * shell_unsetenv - Unset an environment variable
+ * @args: Arguments (name of the environment variable)
+ *
+ * Return: Nothing
+ */
+int shell_unsetenv(char **args)
+{
+	char *name;
+
+	if (args[1] == NULL)
+	{
+		_puterror("Usage: unsetenv VARIABLE\n");
+		return (-1);
+	}
+
+	name = args[1];
+
+	if (unsetenv(name) != 0)
+	{
+		_puterror("unsetenv");
+	}
+	return (0);
+}
+
+/**
+ * execute - Execute a command with arguments.
+ * @argv: An array of strings containing the command and its arguments.
+ *
+ * Return: The exit status of the executed command.
+ */
+int execute(char **argv)
+{
+	pid_t id;
+	int status = 0;
+	char *cmd_path, *envp[2];
+
+	if (argv == NULL || *argv == NULL)
+		return (status);
+	if (check_for_builtin(argv))
+		return (status);
+
+	id = fork();
+	if (id < 0)
+	{
+		_puterror("fork");
+		return (1);
+	}
+	if (id == -1)
+		perror(argv[0]), free_tokens(argv), free_last_input();
+	if (id == 0)
+	{
+		envp[0] = get_path();
+		envp[1] = NULL;
+		cmd_path = NULL;
+		if (argv[0][0] != '/')
+			cmd_path = find_in_path(argv[0]);
+		if (cmd_path == NULL)
+			cmd_path = argv[0];
+		if (execve(cmd_path, argv, envp) == -1)
+		{
+			perror(argv[0]), free_tokens(argv), free_last_input();
+			exit(EXIT_FAILURE);
+		}
+	}
+	else
+	{
+		do {
+			waitpid(id, &status, WUNTRACED);
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+	}
+	return (status);
 }

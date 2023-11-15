@@ -1,41 +1,40 @@
 #include "shell.h"
 
 /**
- * main - entry
- * @argc:the argument
- * @argv:arg
- * @envp:the environment ar
- * Return:0
+ * main - implements a simple shell
+ *
+ * Return: EXIT_SUCCESS.
  */
-int main(int argc, char *argv[], char *envp[])
+int main(void)
 {
-	char *line;
-	Alias aliasTable[MAX_ALIAS_NUM];
-	int aliasCount = 0;
-	int lastExitStatus = 0;
-	(void)argc;
-	(void)argv;
+	char *input;
+	char **args;
+	int status;
 
-	while (1)
-	{
-		printf("$ ");
-		fflush(stdout);
-		line = my_getline(STDIN_FILENO);
-		if (line == NULL)
+	/* Register signal handlers */
+	signal(SIGINT, handle_sigint);
+	signal(SIGQUIT, handle_sigquit);
+	signal(SIGTSTP, handle_sigstp);
+
+	do {
+		input = get_input();
+		if (!input || !*input)/* EOF detected, exit the loop */
+			break;
+
+		args = tokenize_input(input);
+		if (!args || !*args)
 		{
-			printf("\n");
-			exit(EXIT_SUCCESS);
+			free(input);
+			free_tokens(args);
+			continue;
 		}
-		line[strlen(line) - 1] = '\0';
+		status = execute(args);
+		free(input);
+		free_tokens(args);
 
-		process_comments(line);
-		replace_pid(&line);
-		replace_exit_status(&line, lastExitStatus);
-		replace_path(&line);
-		process_commands(line, envp, aliasTable, &aliasCount);
+		/* Set status to 1 to continue the loop */
+		status = 1;
+	} while (status);
 
-		free(line);
-	}
-	return (0);
+	return (EXIT_SUCCESS);
 }
-
