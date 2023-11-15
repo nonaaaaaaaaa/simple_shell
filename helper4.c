@@ -134,10 +134,10 @@ int find_command_path(char **cmdpath, char **argv)
 	if (!found)
 	{
 		fprintf(stderr, "%s: command not found\n", argv[0]);
-		return(0);
+		return (0);
 	}
 	else
 	{
-		return(1);
+		return (1);
 	}
 }
