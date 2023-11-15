@@ -45,6 +45,6 @@ void handle_alias(char **argv, int num_args,
 void handle_exit(char **argv);
 void handle_env(char *envp[]);
 void handle_command(char **argv, char *cmdpath);
-void find_command_path(char **cmdpath, char **argv);
+int find_command_path(char **cmdpath, char **argv);
 
 #endif

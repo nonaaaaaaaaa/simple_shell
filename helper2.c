@@ -74,36 +74,38 @@ void execute_command(char **argv, char *envp[], Alias *aliasTable,
 {
 	char *cmdpath = argv[0];
 
-	if (strcmp(argv[0], "alias") == 0)
+	if(find_command_path(&cmdpath, argv) == 1)
 	{
-		handle_alias(argv, num_args, aliasTable, aliasCount);
-		return;
+		if (strcmp(argv[0], "alias") == 0)
+		{
+			handle_alias(argv, num_args, aliasTable, aliasCount);
+			return;
+		}
+		if (strcmp(argv[0], "cd") == 0)
+		{
+			cd_command(argv[1]);
+			return;
+		}
+		if (strcmp(argv[0], "exit") == 0)
+		{
+			handle_exit(argv);
+			return;
+		}
+		if (strcmp(argv[0], "setenv") == 0)
+		{
+			handle_setenv(argv);
+			return;
+		}
+		if (strcmp(argv[0], "unsetenv") == 0)
+		{
+			handle_unsetenv(argv);
+			return;
+		}
+		if (strcmp(argv[0], "env") == 0)
+		{
+			handle_env(envp);
+			return;
+		}
+		handle_command(argv, cmdpath);
 	}
-	if (strcmp(argv[0], "cd") == 0)
-	{
-		cd_command(argv[1]);
-		return;
-	}
-	if (strcmp(argv[0], "exit") == 0)
-	{
-		handle_exit(argv);
-		return;
-	}
-	if (strcmp(argv[0], "setenv") == 0)
-	{
-		handle_setenv(argv);
-		return;
-	}
-	if (strcmp(argv[0], "unsetenv") == 0)
-	{
-		handle_unsetenv(argv);
-		return;
-	}
-	if (strcmp(argv[0], "env") == 0)
-	{
-		handle_env(envp);
-		return;
-	}
-	find_command_path(&cmdpath, argv);
-	handle_command(argv, cmdpath);
 }

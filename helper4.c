@@ -106,9 +106,9 @@ void handle_command(char **argv, char *cmdpath)
  * find_command_path - find path
  * @cmdpath: path of cmd
  * @argv: aguments
- * Return:void
+ * Return:0 or 1
  */
-void find_command_path(char **cmdpath, char **argv)
+int find_command_path(char **cmdpath, char **argv)
 {
 	int found = (access(*cmdpath, F_OK) == 0);
 
@@ -134,5 +134,10 @@ void find_command_path(char **cmdpath, char **argv)
 	if (!found)
 	{
 		fprintf(stderr, "%s: command not found\n", argv[0]);
+		return(0);
+	}
+	else
+	{
+		return(1);
 	}
 }
